@@ -11,7 +11,7 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  const router=useRouter()
+  const router = useRouter()
 
   useEffect(() => {
     let mounted = true
@@ -51,6 +51,16 @@ export function useAuth() {
       }
     )
 
+    // Check if there are tokens in the URL
+    if (window.location.hash) {
+      const url = new URL(window.location.href)
+      const accessToken = url.hash.match(/access_token=([^&]*)/)?.[1]
+      if (accessToken) {
+        // Clear the URL by replacing it with a clean version
+        router.replace('/')
+      }
+    }
+
     return () => {
       mounted = false
       authListener.subscription.unsubscribe()
@@ -65,7 +75,7 @@ export function useAuth() {
       const { error } = await supabase.from('users').upsert({
         id,
         email,
-        encrypted_password:"",
+        encrypted_password: "",
         full_name,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -80,8 +90,6 @@ export function useAuth() {
   async function signIn() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      
-      
     })
 
     if (error) console.error('Error signing in:', error)
